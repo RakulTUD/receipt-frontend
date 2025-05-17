@@ -32,26 +32,30 @@ jobs:
       - name: Build and push Docker image
         run: |
           gcloud auth configure-docker gcr.io
-          docker build -t gcr.io/receipt/receipt-frontend:${{ github.sha }} .
-          docker push gcr.io/receipt/receipt-frontend:${{ github.sha }}
-      - name: Deploy to Cloud Run (Stable)
+          docker build -t gcr.io/receipt/${{ env.GCP_PROJECT }}/receipt-frontend:${{ github.sha }} .
+          docker push gcr.io/${{ env.GCP_PROJECT }}/receipt-frontend:${{ github.sha }}
+      - name: Deploy to Cloud Run (Stable Revision)
         run: |
-          gcloud run deploy frontend-stable \
-            --image gcr.io/receipt/frontend:${{ github.sha }} \
+          gcloud run deploy frontend \
+            --image gcr.io/${{ env.GCP_PROJECT }}/receipt-frontend:${{ github.sha }} \
             --region us-central1 \
             --platform managed \
             --allow-unauthenticated \
+            --tag stable \
             --set-env-vars BACKEND_URL=${{ secrets.BACKEND_URL }}
-      - name: Deploy to Cloud Run (Canary)
+      - name: Deploy to Cloud Run (Canary Revision)
         run: |
-          gcloud run deploy frontend-canary \
-            --image gcr.io/<project-id>/frontend:${{ github.sha }} \
+          gcloud run deploy frontend \
+            --image gcr.io/${{ env.GCP_PROJECT }}/receipt-frontend:${{ github.sha }} \
             --region us-central1 \
             --platform managed \
             --allow-unauthenticated \
+            --tag canary \
             --set-env-vars BACKEND_URL=${{ secrets.BACKEND_URL }}
       - name: Traffic Splitting
         run: |
-          gcloud run services update-traffic frontend-stable \
-            --to-revisions frontend-stable=90,frontend-canary=10 \
+          gcloud run services update-traffic frontend \
+            --to-revisions stable=90,canary=10 \
             --region us-central1
+env:
+  GCP_PROJECT: receipt-460023
