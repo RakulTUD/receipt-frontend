@@ -42,7 +42,8 @@ jobs:
             --platform managed \
             --allow-unauthenticated \
             --tag stable \
-            --set-env-vars BACKEND_URL=${{ secrets.BACKEND_URL }}
+            --set-env-vars BACKEND_URL=${{ secrets.BACKEND_URL }},PORT=8080 \
+            --timeout 600
       - name: Deploy to Cloud Run (Canary Revision)
         run: |
           gcloud run deploy frontend \
