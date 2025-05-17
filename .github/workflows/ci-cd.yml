@@ -1,62 +1,47 @@
-name: Frontend CI/CD
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-jobs:
-  build-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      - name: Install dependencies
-        run: npm install
-      
-
-  deploy:
-    needs: build-test
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v3
-      - name: Authenticate to GCP
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v1
-      - name: Build and push Docker image
-        run: |
-          gcloud auth configure-docker gcr.io
-          docker build -t gcr.io/${{ env.GCP_PROJECT }}/receipt-frontend:${{ github.sha }} .
-          docker push gcr.io/${{ env.GCP_PROJECT }}/receipt-frontend:${{ github.sha }}
-      - name: Deploy to Cloud Run (Stable Revision)
-        run: |
-          gcloud run deploy frontend \
-            --image gcr.io/${{ env.GCP_PROJECT }}/receipt-frontend:${{ github.sha }} \
-            --region us-central1 \
-            --platform managed \
-            --allow-unauthenticated \
-            --tag stable \
-            --set-env-vars BACKEND_URL=${{ secrets.BACKEND_URL }},PORT=8080 \
-            --timeout 600
-      - name: Deploy to Cloud Run (Canary Revision)
-        run: |
-          gcloud run deploy frontend \
-            --image gcr.io/${{ env.GCP_PROJECT }}/receipt-frontend:${{ github.sha }} \
-            --region us-central1 \
-            --platform managed \
-            --allow-unauthenticated \
-            --tag canary \
-            --set-env-vars BACKEND_URL=${{ secrets.BACKEND_URL }}
-      - name: Traffic Splitting
-        run: |
-          gcloud run services update-traffic frontend \
-            --to-revisions stable=90,canary=10 \
-            --region us-central1
-env:
-  GCP_PROJECT: receipt-460023
+   name: Frontend CI/CD
+   on:
+     push:
+       branches: [main]
+     pull_request:
+       branches: [main]
+   jobs:
+     build-test:
+       runs-on: ubuntu-latest
+       steps:
+         - uses: actions/checkout@v3
+         - name: Set up Node.js
+           uses: actions/setup-node@v3
+           with:
+             node-version: '18'
+         - name: Install dependencies
+           run: npm install
+         
+     deploy:
+       needs: build-test
+       runs-on: ubuntu-latest
+       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+       steps:
+         - uses: actions/checkout@v3
+         - name: Authenticate to GCP
+           uses: google-github-actions/auth@v1
+           with:
+             credentials_json: ${{ secrets.GCP_SA_KEY }}
+         - name: Set up Cloud SDK
+           uses: google-github-actions/setup-gcloud@v1
+         - name: Build and push Docker image
+           run: |
+             gcloud auth configure-docker gcr.io
+             docker build -t gcr.io/${{ env.GCP_PROJECT }}/receipt-frontend:${{ github.sha }} .
+             docker push gcr.io/${{ env.GCP_PROJECT }}/receipt-frontend:${{ github.sha }}
+         - name: Deploy to Cloud Run
+           run: |
+             gcloud run deploy frontend \
+               --image gcr.io/${{ env.GCP_PROJECT }}/receipt-frontend:${{ github.sha }} \
+               --region us-central1 \
+               --platform managed \
+               --allow-unauthenticated \
+               --tag stable \
+               --set-env-vars BACKEND_URL=${{ secrets.BACKEND_URL }} \
+               --timeout 600
+   env:
+     GCP_PROJECT: receipt-460023
