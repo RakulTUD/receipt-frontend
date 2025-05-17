@@ -32,7 +32,7 @@ jobs:
       - name: Build and push Docker image
         run: |
           gcloud auth configure-docker gcr.io
-          docker build -t gcr.io/receipt/${{ env.GCP_PROJECT }}/receipt-frontend:${{ github.sha }} .
+          docker build -t gcr.io/${{ env.GCP_PROJECT }}/receipt-frontend:${{ github.sha }} .
           docker push gcr.io/${{ env.GCP_PROJECT }}/receipt-frontend:${{ github.sha }}
       - name: Deploy to Cloud Run (Stable Revision)
         run: |
