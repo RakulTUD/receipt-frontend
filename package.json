@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node fe-server.js",
     "build": "echo 'No build needed for this Node app'",
-    "test": "mocha test/**/*.js",
+    "test": "mocha test/**/*.js --exit",
     "sonar": "sonar-scanner"
   },
   "dependencies": {
