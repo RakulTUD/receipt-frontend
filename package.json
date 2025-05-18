@@ -6,8 +6,9 @@
   "main": "fe-server.js",
   "scripts": {
     "start": "node fe-server.js",
-    "build": "echo 'No build needed for this Node app'"
-
+    "build": "echo 'No build needed for this Node app'",
+    "test": "mocha test/**/*.js",
+    "sonar": "sonar-scanner"
   },
   "dependencies": {
     "querystring": "^0.2.1"
